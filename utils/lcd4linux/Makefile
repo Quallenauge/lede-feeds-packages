@@ -69,6 +69,7 @@ LCD4LINUX_DRIVERS:= \
 	USBHUB \
 	USBLCD \
 	VNC \
+	serdisplib \
 	WincorNixdorf \
 #	ULA200 \
 #	X11 \

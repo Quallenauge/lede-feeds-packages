@@ -1,0 +1,91 @@
+Index: pygame-1.9.2/src/scrap.c
+===================================================================
+--- pygame-1.9.2.orig/src/scrap.c
++++ pygame-1.9.2/src/scrap.c
+@@ -71,7 +71,7 @@ static uint32_t _cliptype = 0;
+     #define MAC_SCRAP
+     #include "scrap_mac.c"
+ #else
+-    #error Unknown window manager for clipboard handling
++    #include "scrap_stub.c"
+ #endif /* scrap type */
+ 
+ /**
+Index: pygame-1.9.2/src/scrap_stub.c
+===================================================================
+--- /dev/null
++++ pygame-1.9.2/src/scrap_stub.c
+@@ -0,0 +1,54 @@
++/*
++    pygame - Python Game Library
++
++    This library is free software; you can redistribute it and/or
++    modify it under the terms of the GNU Library General Public
++    License as published by the Free Software Foundation; either
++    version 2 of the License, or (at your option) any later version.
++
++    This library is distributed in the hope that it will be useful,
++    but WITHOUT ANY WARRANTY; without even the implied warranty of
++    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
++    Library General Public License for more details.
++
++    You should have received a copy of the GNU Library General Public
++    License along with this library; if not, write to the Free
++    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
++*/
++
++
++int
++pygame_scrap_init (void)
++{
++    return 1;
++}
++
++int
++pygame_scrap_lost (void)
++{
++    return 0;
++}
++
++int
++pygame_scrap_put (char *type, int srclen, char *src)
++{
++    return 1;
++}
++
++char*
++pygame_scrap_get (char *type, unsigned long *count)
++{
++       return NULL;
++}
++
++int
++pygame_scrap_contains (char *type)
++{
++   return 0;
++}
++
++char**
++pygame_scrap_get_types (void)
++{
++    return NULL;
++}
+Index: pygame-1.9.2/config_unix.py
+===================================================================
+--- pygame-1.9.2.orig/config_unix.py
++++ pygame-1.9.2/config_unix.py
+@@ -204,14 +204,10 @@ def main():
+     porttime_dep = get_porttime_dep()
+ 
+     DEPS = [
+-        DependencyProg('SDL', 'SDL_CONFIG', 'sdl-config', '1.2', ['sdl']),
+         DependencyPkgConfig('SDL', 'sdl'),
+         Dependency('FONT', 'SDL_ttf.h', 'libSDL_ttf.so', ['SDL_ttf']),
+-        Dependency('IMAGE', 'SDL_image.h', 'libSDL_image.so', ['SDL_image']),
+         DependencyPkgConfig('IMAGE', 'SDL_image'),
+         Dependency('MIXER', 'SDL_mixer.h', 'libSDL_mixer.so', ['SDL_mixer']),
+-        DependencyProg('SMPEG', 'SMPEG_CONFIG', 'smpeg-config', '0.4.3', ['smpeg']),
+-        Dependency('PNG', 'png.h', 'libpng', ['png']),
+         DependencyPkgConfig('PNG', 'libpng'),
+         Dependency('JPEG', 'jpeglib.h', 'libjpeg', ['jpeg']),
+         Dependency('SCRAP', '', 'libX11', ['X11']),

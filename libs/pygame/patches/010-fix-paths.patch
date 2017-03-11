@@ -1,0 +1,102 @@
+Index: pygame-1.9.2/config_unix.py
+===================================================================
+--- pygame-1.9.2.orig/config_unix.py
++++ pygame-1.9.2/config_unix.py
+@@ -78,6 +78,38 @@ class DependencyProg:
+         else:
+             print (self.name + '        '[len(self.name):] + ': not found')
+ 
++class DependencyPkgConfig:
++    def __init__(self, name, lib):
++        self.name = name
++        self.lib_dir = ''
++        self.inc_dir = ''
++        self.libs = []
++        self.cflags = ''
++        command = os.environ.get('PKG_CONFIG', 'pkg-config')
++        try:
++            version = os.popen('%s %s --modversion 2> /dev/null' % (command, lib)).readline()
++            if not version.strip():
++                self.found = 0
++                return
++
++            cflags = os.popen('%s %s --cflags 2> /dev/null' % (command, lib)).readline().strip()
++            libs = os.popen('%s %s --libs 2> /dev/null' % (command, lib)).readline().strip()
++
++            self.ver = version
++            self.found = 1
++
++            self.cflags = '%s %s' % (cflags, libs)
++        except:
++            print ('WARNING: "pkg-config" failed!')
++            self.found = 0
++            self.ver = '0'
++
++    def configure(self, incdirs, libdir):
++        if self.found:
++            print (self.name + '        '[len(self.name):] + ': found ' + self.ver)
++        else:
++            print (self.name + '        '[len(self.name):] + ': not found')
++
+ class Dependency:
+     def __init__(self, name, checkhead, checklib, libs):
+         self.name = name
+@@ -173,27 +205,37 @@ def main():
+ 
+     DEPS = [
+         DependencyProg('SDL', 'SDL_CONFIG', 'sdl-config', '1.2', ['sdl']),
++        DependencyPkgConfig('SDL', 'sdl'),
+         Dependency('FONT', 'SDL_ttf.h', 'libSDL_ttf.so', ['SDL_ttf']),
+         Dependency('IMAGE', 'SDL_image.h', 'libSDL_image.so', ['SDL_image']),
++        DependencyPkgConfig('IMAGE', 'SDL_image'),
+         Dependency('MIXER', 'SDL_mixer.h', 'libSDL_mixer.so', ['SDL_mixer']),
++        DependencyProg('SMPEG', 'SMPEG_CONFIG', 'smpeg-config', '0.4.3', ['smpeg']),
+         Dependency('PNG', 'png.h', 'libpng', ['png']),
++        DependencyPkgConfig('PNG', 'libpng'),
+         Dependency('JPEG', 'jpeglib.h', 'libjpeg', ['jpeg']),
+         Dependency('SCRAP', '', 'libX11', ['X11']),
+         Dependency('PORTMIDI', 'portmidi.h', 'libportmidi.so', ['portmidi']),
+-        porttime_dep,
++        Dependency('PORTTIME', 'porttime.h', 'libporttime.so', ['porttime']),
++        #Dependency('GFX', 'SDL_gfxPrimitives.h', 'libSDL_gfx.so', ['SDL_gfx']),
+         DependencyProg('FREETYPE', 'FREETYPE_CONFIG', 'freetype-config', '2.0',
+                        ['freetype'], '--ftversion'),
+         #Dependency('GFX', 'SDL_gfxPrimitives.h', 'libSDL_gfx.so', ['SDL_gfx']),
+     ]
++    if not os.environ.get('NO_SCRAP', None):
++        DEPS += Dependency('SCRAP', '', 'libX11', ['X11']),
++    else:
++        DEPS += Dependency('SCRAP', '', '', []),
++
+     if not DEPS[0].found:
+         sys.exit('Unable to run "sdl-config". Please make sure a development version of SDL is installed.')
+ 
+     incdirs = []
+     libdirs = []
+-    incdirs += ["/usr"+d for d in origincdirs]
+-    libdirs += ["/usr"+d for d in origlibdirs]
+-    incdirs += ["/usr/local"+d for d in origincdirs]
+-    libdirs += ["/usr/local"+d for d in origlibdirs]
++#    incdirs += ["/usr"+d for d in origincdirs]
++#    libdirs += ["/usr"+d for d in origlibdirs]
++#    incdirs += ["/usr/local"+d for d in origincdirs]
++#    libdirs += ["/usr/local"+d for d in origlibdirs]
+     if localbase:
+         incdirs = [localbase+d for d in origincdirs]
+         libdirs = [localbase+d for d in origlibdirs]
+@@ -206,15 +248,6 @@ def main():
+     for d in DEPS:
+         d.configure(incdirs, libdirs)
+ 
+-    for d in DEPS[1:]:
+-        if not d.found:
+-            if "-auto" not in sys.argv and not confirm("""
+-Warning, some of the pygame dependencies were not found. Pygame can still
+-compile and install, but games that depend on those missing dependencies
+-will not run. Would you like to continue the configuration?"""):
+-                raise SystemExit("Missing dependencies")
+-            break
+-
+     return DEPS
+ 
+ if __name__ == '__main__':
