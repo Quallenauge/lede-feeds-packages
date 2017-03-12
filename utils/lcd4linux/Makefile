@@ -158,6 +158,7 @@ define Package/lcd4linux-custom
 $(call Package/lcd4linux/Default)
   DEPENDS:= \
 	+LCD4LINUX_CUSTOM_NEEDS_libdbus:libdbus \
+	+serdisplib \
 	+LCD4LINUX_CUSTOM_NEEDS_libgd:libgd \
 	$(if $(ICONV_FULL),+LCD4LINUX_CUSTOM_NEEDS_libiconv:libiconv-full) \
 	+LCD4LINUX_CUSTOM_NEEDS_libjpeg:libjpeg \
