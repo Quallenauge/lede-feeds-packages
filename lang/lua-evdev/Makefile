@@ -15,12 +15,15 @@ PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=LICENSE
 
 PKG_SOURCE_URL:=https://github.com/Tangent128/lua-evdev.git
+#PKG_SOURCE_URL:=https://github.com/zhangxiangxiao/lua-evdev.git
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.gz
-PKG_SOURCE_VERSION:=HEAD
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_VERSION:=Makefiles
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+
+PKG_BUILD_DEPENDS:=lua/host luac/host
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -46,18 +49,21 @@ define Build/Compile
         LDFLAGS="$(EXTRA_LDFLAGS) " \
         $(MAKE) -C $(PKG_BUILD_DIR) \
                 CC="$(TARGET_CC)" \
+                LD="$(TARGET_CROSS)ld" \
                 CROSS="$(TARGET_CROSS)" \
                 CXXFLAGS="$(TARGET_CFLAGS) $(EXTRA_CPPFLAGS) " \
                 ARCH="$(ARCH)" \
-                DESTDIR="$(PKG_INSTALL_DIR)"
+                DESTDIR="$(PKG_INSTALL_DIR)" \
+                OPT_FLAGS="$(TARGET_CFLAGS) --std=c99"
 endef
 
 define Package/lua-evdev/install
 	$(INSTALL_DIR) $(1)/usr/lib/lua/evdev
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/evdev/core.so $(1)/usr/lib/lua/evdev/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/build/evdev/core.so $(1)/usr/lib/lua/evdev/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/evdev/constants.lua $(1)/usr/lib/lua/evdev/
 
 	$(INSTALL_DIR) $(1)/usr/lib/lua/evdev
-	$(INSTALL_DATA) $(PKG_BUILD_DIR)/*.lua $(1)/usr/lib/lua/evdev/
+	$(INSTALL_DATA) $(PKG_BUILD_DIR)/*.lua $(1)/usr/lib/lua/
 endef
 
 $(eval $(call HostBuild))
